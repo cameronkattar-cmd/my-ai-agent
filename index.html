@@ -350,6 +350,22 @@ svg{display:block}
 .onbc h2{margin:0 0 6px}.onbc p{margin:0 0 16px;color:var(--mut)}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
 .sbj{border:1.5px solid var(--line);background:var(--bg);color:inherit;border-radius:99px;padding:7px 14px;cursor:pointer;font-size:.88rem;transition:all .15s}.sbj.on{background:var(--grad);color:#fff;border-color:transparent}
 .onbf{display:flex;justify-content:flex-end;gap:10px}
+
+/* ===== flashcards + edit ===== */
+.fcs{margin:14px 0;max-width:560px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--panel);box-shadow:0 14px 40px #0000001a}
+.fcard{position:relative;margin:20px;height:210px;cursor:pointer;perspective:900px}
+.fcard .ff,.fcard .fb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px;text-align:center;border-radius:18px;font-size:1.1rem;font-weight:600;line-height:1.45;backface-visibility:hidden;transition:transform .5s;overflow:auto}
+.fcard small{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;opacity:.7;font-weight:600}
+.fcard .ff{background:var(--grad);color:#fff}.fcard .fb{background:var(--bg);border:2px solid var(--g2);transform:rotateY(180deg)}
+.fcard.flip .ff{transform:rotateY(180deg)}.fcard.flip .fb{transform:rotateY(360deg)}
+.fbar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 20px 20px}
+.uacts{display:flex;justify-content:flex-end;opacity:0;transition:opacity .15s;margin-top:2px}.msg.user:hover .uacts{opacity:1}
+.uacts button{display:grid;place-items:center;width:28px;height:28px;border:0;background:none;color:var(--mut);cursor:pointer;border-radius:8px}.uacts button:hover{color:var(--ink);background:color-mix(in srgb,var(--g2) 12%,transparent)}
+@media(hover:none){.uacts{opacity:1}}
+
+.qc{display:none;gap:6px;flex-wrap:wrap;margin-top:8px}.msg.model:last-child .qc{display:flex}
+.qc button{border:1px solid var(--line);background:none;color:var(--mut);border-radius:99px;padding:4px 12px;font-size:.8rem;cursor:pointer;transition:all .15s}.qc button:hover{color:var(--ink);border-color:var(--g2)}
+.sw{display:flex;gap:10px;margin-bottom:10px}.sw button{width:30px;height:30px;border-radius:50%;border:2px solid transparent;cursor:pointer;outline:2px solid transparent;outline-offset:2px}.sw button.on{outline-color:var(--ink)}
 </style>
 </head>
 <body>
@@ -398,7 +414,7 @@ svg{display:block}
       <div id="chips" class="chips" hidden></div>
       <div class="box">
         <button type="button" class="ib" id="att" title="Attach files" aria-label="Attach files">📎</button><input type="file" id="file" multiple hidden accept="image/*,.pdf,.txt,.md,.csv,.json,.js,.ts,.py,.html,.css,.java,.c,.cpp,.xml,.yml,.yaml,.sql,.log">
-        <textarea id="input" rows="1" placeholder="Ask anything…" aria-label="Message"></textarea><button type="button" class="ib" id="mic" title="Speak" aria-label="Speak">🎤</button>
+        <textarea id="input" rows="1" placeholder="Ask anything… or type /help" aria-label="Message"></textarea><button type="button" class="ib" id="mic" title="Speak" aria-label="Speak">🎤</button>
         <button id="go" type="submit" aria-label="Send">↑</button>
       </div>
       <div class="hint" id="hint"></div>
@@ -417,7 +433,7 @@ svg{display:block}
     </section>
     <section>
       <h4>Personality</h4>
-      <select id="persona" class="sel"><option value="">Default</option><option value="study">Study buddy</option><option value="coder">Expert coder</option><option value="writer">Writing coach</option><option value="friend">Casual friend</option></select>
+      <select id="persona" class="sel"><option value="">Default</option><option value="study">Study buddy</option><option value="coder">Expert coder</option><option value="writer">Writing coach</option><option value="friend">Casual friend</option><option value="chef">Chef</option><option value="gym">Gym coach</option><option value="career">Career coach</option><option value="travel">Travel planner</option><option value="debate">Debate partner</option><option value="trans">Translator</option><option value="nerd">Gaming buddy</option></select>
     </section>
     <section>
       <h4>Memory</h4>
@@ -425,7 +441,7 @@ svg{display:block}
       <textarea id="mem" placeholder="Things I should always remember about you. You can also type /remember … in any chat."></textarea>
     </section>
     <section>
-      <h4>Appearance</h4>
+      <h4>Appearance</h4><div class="sw" id="acc"></div><div class="seg" id="fsz" style="margin-bottom:10px"><button type="button" data-z="14">Small</button><button type="button" data-z="15">Normal</button><button type="button" data-z="17">Large</button></div>
       <div class="seg" id="theme"><button type="button" data-t="auto">Auto</button><button type="button" data-t="light">Light</button><button type="button" data-t="dark">Dark</button></div>
     </section>
     <section>
@@ -519,7 +535,7 @@ const hl = c => c.replace(/(\/\/.*|#.*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'
 const imgCard = p => `<div class="img" data-p="${encodeURIComponent(p)}"><div class="imgbox"></div><div class="imgcap">${esc(p.length>140?p.slice(0,140)+"…":p)}</div></div>`;
 function md(t){
   const hold = [], keep = h => "\u0000"+(hold.push(h)-1)+"\u0000";
-  let s = t.replace(/```quiz\n([\s\S]*?)```/g,(_,j)=>keep(`<div class="quiz" data-q="${encodeURIComponent(j.trim())}"></div>`)).replace(/```mermaid\n([\s\S]*?)```/g,(_,c)=>keep(`<pre class="mermaid">${esc(c)}</pre>`)).replace(/```image\n([\s\S]*?)```/g,(_,p)=>keep(imgCard(p.trim()))).replace(/```artifact:([^\n]+)\n([\s\S]*?)```/g,(_,n,c)=>{
+  let s = t.replace(/```flashcards\n([\s\S]*?)```/g,(_,j)=>keep(`<div class="fcs" data-q="${encodeURIComponent(j.trim())}"></div>`)).replace(/```quiz\n([\s\S]*?)```/g,(_,j)=>keep(`<div class="quiz" data-q="${encodeURIComponent(j.trim())}"></div>`)).replace(/```mermaid\n([\s\S]*?)```/g,(_,c)=>keep(`<pre class="mermaid">${esc(c)}</pre>`)).replace(/```image\n([\s\S]*?)```/g,(_,p)=>keep(imgCard(p.trim()))).replace(/```artifact:([^\n]+)\n([\s\S]*?)```/g,(_,n,c)=>{
       n = n.trim().replace(/[^\w.\- ]/g,""); ART.set(n,c);
       return keep(`<div class="art"><div class="ai">📄</div><div class="an"><b>${esc(n)}</b><small>${Math.ceil(c.length/1024)||1} KB</small></div><button class="btn" data-a="view" data-n="${esc(n)}">Preview</button><button class="btn" data-a="dl" data-n="${esc(n)}">Download</button></div>`);})
     .replace(/```([\w+-]*)\n?([\s\S]*?)```/g,(_,l,c)=>keep(`<div class="code"><div class="ch"><span>${esc(l)||"code"}</span><button data-a="copy">Copy</button></div><pre><code>${hl(esc(c.replace(/\n$/,"")))}</code></pre></div>`));
@@ -541,22 +557,26 @@ const flash = (m,ms=3500) => { $("#hint").textContent = m; clearTimeout(flash.t)
 const toast = m => { const t = $("#toast"); t.textContent = m; t.hidden = false; t.classList.remove("show"); void t.offsetWidth; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(()=>t.hidden=true,5500); };
 const short = id => id.replace(/:free$/,"").split("/").pop().split("|").pop();
 const copy = async t => { try{ await navigator.clipboard.writeText(t); flash("Copied",1500); }catch{ flash("Copy failed"); } };
-const SUG = [["</>","Help me with coding","I'd like help with coding. Ask me what I'm working on and which language."],
-  ["✦","Explain something complicated","I want you to explain something complicated in simple terms. Ask me what topic."],
-  ["✎","Help me write something","Help me write something. Ask me what it is, who it's for and the tone."],
+const SUG = [["?","Quiz me","Make me a quiz. Ask which subject and topic, then build it."],
+  ["▤","Flashcards","Make me flashcards. Ask which subject and topic, then build them."],
+  ["✓","Mark my answer","I'll paste a VCE-style question and my answer. Mark it out of the marks, say what earned or lost marks, then show a top-mark version."],
+  ["✦","Explain a concept","Explain a concept simply first, then at VCE exam depth. Ask me what concept."],
+  ["▦","Study plan","Make me a study plan for an upcoming SAC or exam. Ask for the subject, date and how many hours I have."],
   ["🎨","Make an image","I want you to create an image for me. Ask me what it should look like."]];
 function addActs(col,m){
   const a = document.createElement("div"); a.className = "acts";
   a.innerHTML = `<button data-a="cm" title="Copy" aria-label="Copy">${IC.copy}</button><button data-a="say" title="Read aloud" aria-label="Read aloud">${IC.say}</button><button data-a="rg" title="Regenerate" aria-label="Regenerate">${IC.redo}</button><button data-a="up" title="Good response" class="${m.fb==="up"?"on":""}" aria-label="Good response">${IC.up}</button><button data-a="dn" title="Bad response" class="${m.fb==="dn"?"on":""}" aria-label="Bad response">${IC.dn}</button>${m.by?`<span class="by">${esc(m.by)}</span>`:""}`;
   col.appendChild(a);
+  const fu = document.createElement("div"); fu.className = "qc"; fu.innerHTML = ["Shorter","Simpler","More detail","Continue"].map(t=>`<button data-fu="${t}">${t}</button>`).join(""); col.appendChild(fu);
 }
+const FU = {"Shorter":"Make that shorter.","Simpler":"Explain that more simply.","More detail":"Give more detail on that.","Continue":"Continue."};
 function bubble(role,text,m){
   const row = document.createElement("div"); row.className = "msg "+role;
   row.innerHTML = (role==="model" ? '<div class="logo">CK</div>' : "") + '<div class="col"><div class="body"></div></div>';
   const body = row.querySelector(".body"), col = row.querySelector(".col");
   if(m) MS.set(row,m);
   if(role==="model"){ body.innerHTML = md(text); if(m) addActs(col,m); mountImages(body,false); enrich(body); }
-  else { body.textContent = text; if(m?.files?.length){ const w = document.createElement("div"); w.className = "fl";
+  else { body.textContent = text; if(m){ const ea = document.createElement("div"); ea.className = "uacts"; ea.innerHTML = `<button data-a="edit" title="Edit and resend" aria-label="Edit and resend">${IC.edit}</button>`; col.append(ea); } if(m?.files?.length){ const w = document.createElement("div"); w.className = "fl";
     m.files.forEach((f,i)=>{ f = typeof f==="string" ? {name:f} : f; const b = document.createElement("button"); b.type = "button"; b.className = "fchip";
       b.dataset.a = "file"; b.dataset.i = i; b.textContent = "📎 "+f.name; if(!f.id && !m.att){ b.disabled = true; b.title = "Not saved"; } w.append(b); });
     body.append(w); } }
@@ -790,12 +810,17 @@ const closeSide = () => { $("#side").classList.remove("open"); $("#scrim").class
 $("#menu").onclick = () => { if(innerWidth>800) $("#side").classList.toggle("hide"); else { $("#side").classList.add("open"); $("#scrim").classList.add("show"); } };
 $("#scrim").onclick = closeSide;
 $("#new").onclick = () => { newChat(); closeSide(); $("#input").focus(); };
-$("#form").onsubmit = e => { e.preventDefault(); if(busy){ stopGen(); return; } const t = $("#input").value.trim(); if(!t&&!pending.length) return;
+const SLASH = {image:"Create an image of: ",quiz:"Make me a quiz on: ",flash:"Make flashcards on: ",eli5:"Explain like I'm 5: ",summarise:"Summarise this in 5 bullet points: ",translate:"Translate this (to English unless I name a language): ",fix:"Fix the spelling and grammar and make this clearer: ",plan:"Make me a step-by-step plan for: ",joke:"Tell me a funny joke about: "};
+const slash = t => { const m = t.match(/^\/(\w+)\s*([\s\S]*)/); const c = m && SLASH[m[1].toLowerCase()]; return c ? c+m[2] : t; };
+$("#form").onsubmit = e => { e.preventDefault(); if(busy){ stopGen(); return; } let t = $("#input").value.trim();
+  if(/^\/(help|\?)\s*$/i.test(t)){ toast("Commands: /image /quiz /flash /eli5 /summarise /translate /fix /plan /joke /remember"); $("#input").value = ""; return; }
+  t = slash(t); if(!t&&!pending.length) return;
   if(/^\/remember /i.test(t)){ prefs.memory = ((prefs.memory||"")+"\n"+t.slice(10)).trim(); savePrefs(); $("#mem").value = prefs.memory; $("#input").value = ""; toast("Saved to memory."); return; } $("#input").value=""; $("#input").style.height="auto"; send(t,pending.splice(0)); renderPending(); };
+document.addEventListener("keydown", e => { if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==="k"){ e.preventDefault(); $("#new").click(); $("#input").focus(); } else if(e.key==="/" && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)){ e.preventDefault(); $("#input").focus(); } });
 $("#input").onkeydown = e => { if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); $("#form").requestSubmit(); } };
 $("#input").oninput = e => { e.target.style.height="auto"; e.target.style.height=e.target.scrollHeight+"px"; };
 $("#model").value = prefs.model; $("#model").onchange = e => { prefs.model = e.target.value; savePrefs(); };
-const PERS = {study:"Act as a patient study buddy: explain step by step, check understanding, offer quizzes.",coder:"Act as an expert senior programmer: give working code and brief explanations.",writer:"Act as a writing coach: improve clarity and style, explain your edits briefly.",friend:"Chat like a relaxed, funny friend. Keep it casual."};
+const PERS = {study:"Act as a patient study buddy: explain step by step, check understanding, offer quizzes.",coder:"Act as an expert senior programmer: give working code and brief explanations.",writer:"Act as a writing coach: improve clarity and style, explain your edits briefly.",friend:"Chat like a relaxed, funny friend. Keep it casual.",chef:"Act as a friendly chef: give practical recipes, swaps and timings.",gym:"Act as an encouraging gym coach: give safe, practical training and nutrition tips, no medical claims.",career:"Act as a career coach: help with CVs, interviews and job choices in Australia.",travel:"Act as a travel planner: give itineraries with realistic timing and budget tips.",debate:"Act as a debate partner: argue the opposite side respectfully and point out weak reasoning.",trans:"Act as a translator: translate what I send into the language I name (default English), then explain tricky phrases briefly.",nerd:"Act as an enthusiastic gaming buddy: tips, builds and strategies, spoiler-free."};
 const buildInstr = () => [PERS[prefs.persona], prefs.memory && "About the user: "+prefs.memory, prefs.subjects?.length && "Their subjects"+(prefs.year?" (Year "+prefs.year+")":"")+": "+prefs.subjects.join(", "), prefs.instr].filter(Boolean).join("\n");
 $("#persona").value = prefs.persona||""; $("#persona").onchange = e => { prefs.persona = e.target.value; savePrefs(); };
 $("#mem").value = prefs.memory||""; $("#mem").oninput = e => { prefs.memory = e.target.value; savePrefs(); };
@@ -811,7 +836,29 @@ let katexP = null; const CDN = "https://cdn.jsdelivr.net/npm/";
 const loadKatex = () => katexP || (katexP = new Promise(r=>{ const l = document.createElement("link"); l.rel = "stylesheet"; l.href = CDN+"katex@0.16.11/dist/katex.min.css"; document.head.append(l);
   const s1 = document.createElement("script"); s1.src = CDN+"katex@0.16.11/dist/katex.min.js"; s1.onload = () => { const s2 = document.createElement("script"); s2.src = CDN+"katex@0.16.11/dist/contrib/auto-render.min.js"; s2.onload = r; document.head.append(s2); }; document.head.append(s1); }));
 const KX = {delimiters:[{left:"$$",right:"$$",display:true},{left:"\\(",right:"\\)",display:false}],throwOnError:false};
+function mountCards(root){
+  root.querySelectorAll(".fcs:not([data-m])").forEach(el=>{
+    el.dataset.m = 1; let d; try{ d = JSON.parse(decodeURIComponent(el.dataset.q)); }catch{ el.textContent = "Couldn't read these flashcards."; return; }
+    let C = (d.cards||[]).filter(x=>x&&x.f); if(!C.length){ el.textContent = "No cards."; return; }
+    const all = [...C]; let i = 0, flip = false, known = new Set();
+    const draw = () => {
+      if(!C.length){ el.innerHTML = `<div class="qres"><h4>All cards learned</h4><p>${esc(d.title||"")}</p><button class="btn pri" data-r>Restart</button></div>`; el.querySelector("[data-r]").onclick = () => { C = [...all]; known.clear(); i = 0; flip = false; draw(); }; return; }
+      if(i>=C.length) i = 0; const c = C[i];
+      el.innerHTML = `<div class="qh"><span>${esc(d.title||"Flashcards")}</span><span>${known.size} learned · ${i+1}/${C.length}</span></div>
+<div class="fcard ${flip?"flip":""}"><div class="ff"><small>Question</small>${esc(c.f)}</div><div class="fb"><small>Answer</small>${esc(c.b)}</div></div>
+<div class="fbar"><button class="btn" data-p>Back</button><button class="btn" data-sh>Shuffle</button><button class="btn" data-a2>Again</button><button class="btn pri" data-g>Got it</button></div>`;
+      el.querySelector(".fcard").onclick = () => { flip = !flip; el.querySelector(".fcard").classList.toggle("flip",flip); };
+      el.querySelector("[data-p]").onclick = () => { i = (i-1+C.length)%C.length; flip = false; draw(); };
+      el.querySelector("[data-sh]").onclick = () => { C.sort(()=>Math.random()-.5); i = 0; flip = false; draw(); };
+      el.querySelector("[data-a2]").onclick = () => { i = (i+1)%C.length; flip = false; draw(); };
+      el.querySelector("[data-g]").onclick = () => { known.add(c); C.splice(i,1); flip = false; draw(); };
+      try{ window.renderMathInElement && renderMathInElement(el,KX); }catch{}
+    };
+    draw();
+  });
+}
 function mountQuiz(root){
+  mountCards(root);
   root.querySelectorAll(".quiz:not([data-m])").forEach(el=>{
     el.dataset.m = 1; let d; try{ d = JSON.parse(decodeURIComponent(el.dataset.q)); }catch{ el.textContent = "Couldn't read this quiz. Ask me to try again."; return; }
     const Q = (d.questions||[]).filter(x=>x&&x.q); if(!Q.length){ el.textContent = "Empty quiz."; return; }
@@ -864,6 +911,13 @@ $("#modal").onclick = e => { if(e.target.id==="modal") closeSet(); };
 document.addEventListener("keydown", e => { if(e.key==="Escape") closeSet(); });
 document.querySelectorAll("#theme [data-t]").forEach(b=>b.onclick=()=>{ prefs.theme = b.dataset.t; savePrefs(); applyTheme(); });
 if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(()=>{});
+const ACC = {Purple:["#2447e0","#8b5cf6","#ec4899"],Blue:["#0ea5e9","#2563eb","#6366f1"],Green:["#059669","#10b981","#84cc16"],Pink:["#db2777","#ec4899","#f97316"],Orange:["#ea580c","#f59e0b","#ef4444"]};
+const applyLook = () => { const c = ACC[prefs.accent||"Purple"]||ACC.Purple, r = document.documentElement.style; r.setProperty("--g1",c[0]); r.setProperty("--g2",c[1]); r.setProperty("--g3",c[2]); document.body.style.fontSize = (prefs.fs||15)+"px";
+  document.querySelectorAll("#acc button").forEach(b=>b.classList.toggle("on",b.title===(prefs.accent||"Purple"))); document.querySelectorAll("#fsz button").forEach(b=>b.classList.toggle("on",+b.dataset.z===(prefs.fs||15))); };
+$("#acc").innerHTML = Object.entries(ACC).map(([n,c])=>`<button type="button" title="${n}" aria-label="${n}" style="background:linear-gradient(135deg,${c[0]},${c[1]})"></button>`).join("");
+$("#acc").onclick = e => { const b = e.target.closest("button"); if(b){ prefs.accent = b.title; savePrefs(); applyLook(); } };
+$("#fsz").onclick = e => { const b = e.target.closest("button"); if(b){ prefs.fs = +b.dataset.z; savePrefs(); applyLook(); } };
+applyLook();
 const SUBJ = ["English","EAL","Literature","English Language","Mathematical Methods","Specialist Mathematics","General Mathematics","Biology","Chemistry","Physics","Psychology","Health and Human Development","Physical Education","Business Management","Economics","Accounting","Legal Studies","History","Geography","Computing","Psychology","Media","Visual Communication Design","Art Creative Practice","Music","Languages"];
 const onbOpen = () => {
   let yr = String(prefs.year??""), sel = new Set(prefs.subjects||[]);
@@ -887,11 +941,12 @@ $("#artm").onclick = e => { if(e.target.id==="artm") e.currentTarget.hidden = tr
 $("#artDl").onclick = () => dlArt(artName);
 document.addEventListener("keydown", e => { if(e.key==="Escape") $("#artm").hidden = true; });
 thread.addEventListener("click", e => {
-  const b = e.target.closest("[data-a],[data-s],[data-c]"); if(!b) return;
+  const b = e.target.closest("[data-a],[data-s],[data-c],[data-fu]"); if(!b) return;
   if(b.dataset.c){ const c = chats.find(x=>x.id===b.dataset.c); if(c){ cur = c; renderChat(); renderList(); } return; }
+  if(b.dataset.fu){ if(!busy) send(FU[b.dataset.fu]); return; }
   if(b.dataset.s){ if(!busy) send(SUG[b.dataset.s][2]); return; }
   const a = b.dataset.a, row = b.closest(".msg"), m = row && MS.get(row);
-  if(a==="imggen") runImg(b.closest(".img")); else if(a==="imgdl") dlImg(b.closest(".img")); else if(a==="copy") copy(b.closest(".code").querySelector("code").innerText);
+  if(a==="edit"){ const mm = MS.get(b.closest(".msg")); if(!busy && mm && cur){ const ix = cur.messages.indexOf(mm); if(ix>=0){ $("#input").value = mm.text; cur.messages.length = ix; persist(cur); renderChat(); renderList(); $("#input").focus(); $("#input").dispatchEvent(new Event("input")); } } } else if(a==="imggen") runImg(b.closest(".img")); else if(a==="imgdl") dlImg(b.closest(".img")); else if(a==="copy") copy(b.closest(".code").querySelector("code").innerText);
   else if(a==="cm" && m) copy(m.text); else if(a==="say" && m) say(m.text);
   else if(a==="rg") regen();
   else if((a==="up"||a==="dn") && m){ m.fb = m.fb===a ? null : a;
