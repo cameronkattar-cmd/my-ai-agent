@@ -166,7 +166,7 @@ export default async function handler(req, res) {
     try { r = kind === "g" ? await viaGemini(a) : await viaProvider(a, mid); }
     catch { r = { status: 503, error: "Timed out." }; }
     if (r.text) return res.status(200).json({ text: r.text, model: used, label: used.split("|").pop().replace(/:free$/, "").split("/").pop(), switched: used !== chosenId });
-    if (kind === "g" && r.status === 429) geminiOut = true;
+    if (kind === "g" && r.status === 429 && (PROVIDERS.groq.key() || PROVIDERS.or.key())) geminiOut = true; // only skip the rest of Gemini if a backup provider exists
     lastErr = lastErr || r;
     if (first && head.length && !RETRY.includes(r.status)) return res.status(r.status || 500).json({ error: r.error || "Request failed." });
     first = false;
