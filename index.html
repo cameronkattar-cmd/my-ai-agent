@@ -327,6 +327,29 @@ svg{display:block}
 .mk button:hover{transform:translateY(-2px);border-color:var(--g2)}.mk b{display:block}.mk small{color:var(--mut)}
 .alist{display:flex;flex-direction:column;gap:8px}.ar{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .ar div{flex:1;min-width:0}.ar b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ar small{color:var(--mut)}
+
+/* ===== quiz + onboarding ===== */
+.quiz{margin:14px 0;max-width:640px;border:1px solid var(--line);border-radius:22px;overflow:hidden;background:var(--panel);box-shadow:0 14px 40px #0000001a}
+.qh{display:flex;justify-content:space-between;padding:14px 20px;background:var(--grad);color:#fff;font-weight:600;font-size:.9rem}
+.qbar{height:4px;background:color-mix(in srgb,var(--g2) 18%,transparent)}.qbar i{display:block;height:100%;background:var(--grad);transition:width .4s}
+.qq{padding:22px 22px 10px;font-size:1.08rem;line-height:1.5;font-weight:600}.qq em{display:inline-block;margin-left:10px;font-size:.72rem;font-style:normal;font-weight:600;color:var(--g2);border:1px solid var(--g2);border-radius:99px;padding:1px 9px;vertical-align:middle}
+.qo{display:grid;gap:10px;padding:10px 22px 18px}
+.qo button{display:flex;align-items:center;gap:12px;text-align:left;border:1.5px solid var(--line);background:var(--bg);color:inherit;border-radius:14px;padding:12px 14px;cursor:pointer;transition:all .15s;font-size:.95rem}
+.qo button:hover:not(:disabled){border-color:var(--g2);transform:translateY(-1px)}.qo button b{display:grid;place-items:center;flex:none;width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--g2) 14%,transparent);color:var(--g2);font-size:.8rem}
+.qo button.right{border-color:#22c55e;background:#22c55e1f}.qo button.right b{background:#22c55e;color:#fff}.qo button.wrong{border-color:#ef4444;background:#ef44441a}.qo button.wrong b{background:#ef4444;color:#fff}
+.qo button:disabled{cursor:default}
+.qa{display:block;width:calc(100% - 44px);margin:6px 22px 12px;min-height:90px;border:1.5px solid var(--line);border-radius:14px;padding:12px;background:var(--bg);color:inherit;font:inherit;resize:vertical}
+.quiz>.btn{margin:0 22px 20px}
+.qex{margin:0 22px 22px;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,var(--g2) 10%,transparent);animation:up .3s ease both}.qex.good{background:#22c55e1c}.qex.bad{background:#ef44441a}
+.qex p{margin:6px 0 12px;font-size:.93rem;line-height:1.5}.qsb{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.qsb span{margin-right:auto;color:var(--mut);font-size:.88rem}
+.qres{text-align:center;padding:30px 22px}.qres h4{margin:14px 0 4px;font-size:1.3rem}.qres p{margin:0 0 18px;color:var(--mut)}
+.qring{--p:0;width:120px;height:120px;margin:0 auto;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--g2) calc(var(--p)*1%),color-mix(in srgb,var(--g2) 15%,transparent) 0)}
+.qring b{display:grid;place-items:center;width:92px;height:92px;border-radius:50%;background:var(--panel);font-size:1.9rem}.qring small{font-size:.9rem;color:var(--mut)}
+#onb{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:#0009;backdrop-filter:blur(8px);padding:16px}#onb[hidden]{display:none}
+.onbc{width:min(560px,100%);max-height:92vh;overflow:auto;background:var(--panel);border-radius:26px;padding:26px;box-shadow:0 30px 80px #0006;animation:up .4s ease both}
+.onbc h2{margin:0 0 6px}.onbc p{margin:0 0 16px;color:var(--mut)}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
+.sbj{border:1.5px solid var(--line);background:var(--bg);color:inherit;border-radius:99px;padding:7px 14px;cursor:pointer;font-size:.88rem;transition:all .15s}.sbj.on{background:var(--grad);color:#fff;border-color:transparent}
+.onbf{display:flex;justify-content:flex-end;gap:10px}
 </style>
 </head>
 <body>
@@ -398,6 +421,7 @@ svg{display:block}
     </section>
     <section>
       <h4>Memory</h4>
+      <button class="btn" id="subj" type="button" style="margin-bottom:8px">Year &amp; subjects</button>
       <textarea id="mem" placeholder="Things I should always remember about you. You can also type /remember … in any chat."></textarea>
     </section>
     <section>
@@ -415,6 +439,9 @@ svg{display:block}
 <h4>Create something</h4><div class="mk" id="mk"></div><h4>Your artifacts</h4><div class="alist" id="artsList"></div></div></div>
 <div id="toast" role="status" hidden></div>
 <div class="modal" id="artm" hidden><div class="panel wide"><header><h3 id="artT"></h3><div style="display:flex;gap:8px"><button class="btn" id="artDl">Download</button><button class="btn" id="artX">Close</button></div></header><iframe id="artF" sandbox="allow-scripts allow-forms" title="Preview"></iframe><pre id="artP" hidden></pre></div></div>
+<div id="onb" hidden><div class="onbc"><h2>Set up your study profile</h2><p>Pick your year and subjects so answers match what you are assessed on. You can change this any time in Settings.</p>
+<div class="seg" id="oyr"><button type="button" data-y="10">Year 10</button><button type="button" data-y="11">Year 11</button><button type="button" data-y="12">Year 12</button><button type="button" data-y="0">Not VCE</button></div>
+<div class="chips" id="osub"></div><div class="onbf"><button class="btn" id="oskip">Skip</button><button class="btn pri" id="osave">Save</button></div></div></div>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithPopup,GoogleAuthProvider,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,signInAnonymously,linkWithPopup} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -446,7 +473,10 @@ const useFb = !!FIREBASE_CONFIG.apiKey;
 let auth, db, user = null, guest = false, chats = [], cur = null, busy = false;
 const prefs = Object.assign({model:"auto",plugins:[],instr:""}, JSON.parse(localStorage.ck_prefs||"{}"));
 if(!prefs.v2){ prefs.v2 = 1; prefs.model = "auto"; localStorage.ck_prefs = JSON.stringify(prefs); }
-if(!prefs.web){ prefs.web=1; prefs.plugins=[...new Set([...prefs.plugins,"search","url"])]; localStorage.ck_prefs=JSON.stringify(prefs); }
+const DEFAULT_MEM = "The user studies VCE in Victoria, Australia. For all study help: base answers on the VCE study designs, use VCE terminology and command terms, focus on what is assessed, structure answers to earn marks in SACs and exams, prefer VCE-style questions, use Australian spelling.";
+if(!prefs.web2){ prefs.web2=1; prefs.plugins=[]; }
+if(prefs.memory===undefined) prefs.memory = DEFAULT_MEM;
+localStorage.ck_prefs=JSON.stringify(prefs);
 const applyTheme = () => { prefs.theme==="light"||prefs.theme==="dark" ? document.documentElement.dataset.theme = prefs.theme : delete document.documentElement.dataset.theme;
   document.querySelectorAll("#theme [data-t]").forEach(b=>b.classList.toggle("on",b.dataset.t===(prefs.theme||"auto"))); };
 applyTheme();
@@ -489,7 +519,7 @@ const hl = c => c.replace(/(\/\/.*|#.*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'
 const imgCard = p => `<div class="img" data-p="${encodeURIComponent(p)}"><div class="imgbox"></div><div class="imgcap">${esc(p.length>140?p.slice(0,140)+"…":p)}</div></div>`;
 function md(t){
   const hold = [], keep = h => "\u0000"+(hold.push(h)-1)+"\u0000";
-  let s = t.replace(/```mermaid\n([\s\S]*?)```/g,(_,c)=>keep(`<pre class="mermaid">${esc(c)}</pre>`)).replace(/```image\n([\s\S]*?)```/g,(_,p)=>keep(imgCard(p.trim()))).replace(/```artifact:([^\n]+)\n([\s\S]*?)```/g,(_,n,c)=>{
+  let s = t.replace(/```quiz\n([\s\S]*?)```/g,(_,j)=>keep(`<div class="quiz" data-q="${encodeURIComponent(j.trim())}"></div>`)).replace(/```mermaid\n([\s\S]*?)```/g,(_,c)=>keep(`<pre class="mermaid">${esc(c)}</pre>`)).replace(/```image\n([\s\S]*?)```/g,(_,p)=>keep(imgCard(p.trim()))).replace(/```artifact:([^\n]+)\n([\s\S]*?)```/g,(_,n,c)=>{
       n = n.trim().replace(/[^\w.\- ]/g,""); ART.set(n,c);
       return keep(`<div class="art"><div class="ai">📄</div><div class="an"><b>${esc(n)}</b><small>${Math.ceil(c.length/1024)||1} KB</small></div><button class="btn" data-a="view" data-n="${esc(n)}">Preview</button><button class="btn" data-a="dl" data-n="${esc(n)}">Download</button></div>`);})
     .replace(/```([\w+-]*)\n?([\s\S]*?)```/g,(_,l,c)=>keep(`<div class="code"><div class="ch"><span>${esc(l)||"code"}</span><button data-a="copy">Copy</button></div><pre><code>${hl(esc(c.replace(/\n$/,"")))}</code></pre></div>`));
@@ -766,7 +796,7 @@ $("#input").onkeydown = e => { if(e.key==="Enter" && !e.shiftKey){ e.preventDefa
 $("#input").oninput = e => { e.target.style.height="auto"; e.target.style.height=e.target.scrollHeight+"px"; };
 $("#model").value = prefs.model; $("#model").onchange = e => { prefs.model = e.target.value; savePrefs(); };
 const PERS = {study:"Act as a patient study buddy: explain step by step, check understanding, offer quizzes.",coder:"Act as an expert senior programmer: give working code and brief explanations.",writer:"Act as a writing coach: improve clarity and style, explain your edits briefly.",friend:"Chat like a relaxed, funny friend. Keep it casual."};
-const buildInstr = () => [PERS[prefs.persona], prefs.memory && "Remember these facts about the user: "+prefs.memory, prefs.instr].filter(Boolean).join("\n");
+const buildInstr = () => [PERS[prefs.persona], prefs.memory && "About the user: "+prefs.memory, prefs.subjects?.length && "Their subjects"+(prefs.year?" (Year "+prefs.year+")":"")+": "+prefs.subjects.join(", "), prefs.instr].filter(Boolean).join("\n");
 $("#persona").value = prefs.persona||""; $("#persona").onchange = e => { prefs.persona = e.target.value; savePrefs(); };
 $("#mem").value = prefs.memory||""; $("#mem").oninput = e => { prefs.memory = e.target.value; savePrefs(); };
 const SR = window.SpeechRecognition||window.webkitSpeechRecognition; let rec = null;
@@ -780,7 +810,44 @@ $("#exp").onclick = () => { if(!cur?.messages.length) return toast("Nothing to e
 let katexP = null; const CDN = "https://cdn.jsdelivr.net/npm/";
 const loadKatex = () => katexP || (katexP = new Promise(r=>{ const l = document.createElement("link"); l.rel = "stylesheet"; l.href = CDN+"katex@0.16.11/dist/katex.min.css"; document.head.append(l);
   const s1 = document.createElement("script"); s1.src = CDN+"katex@0.16.11/dist/katex.min.js"; s1.onload = () => { const s2 = document.createElement("script"); s2.src = CDN+"katex@0.16.11/dist/contrib/auto-render.min.js"; s2.onload = r; document.head.append(s2); }; document.head.append(s1); }));
+const KX = {delimiters:[{left:"$$",right:"$$",display:true},{left:"\\(",right:"\\)",display:false}],throwOnError:false};
+function mountQuiz(root){
+  root.querySelectorAll(".quiz:not([data-m])").forEach(el=>{
+    el.dataset.m = 1; let d; try{ d = JSON.parse(decodeURIComponent(el.dataset.q)); }catch{ el.textContent = "Couldn't read this quiz. Ask me to try again."; return; }
+    const Q = (d.questions||[]).filter(x=>x&&x.q); if(!Q.length){ el.textContent = "Empty quiz."; return; }
+    let i = 0, score = 0;
+    const math = () => { try{ window.renderMathInElement && renderMathInElement(el,KX); }catch{} };
+    const next = () => { i++; draw(); };
+    function draw(){
+      if(i>=Q.length){
+        const pc = Math.round(score/Q.length*100);
+        el.innerHTML = `<div class="qres"><div class="qring" style="--p:${pc}"><b>${score}<small>/${Q.length}</small></b></div><h4>${pc===100?"Perfect score":pc>=70?"Great work":pc>=40?"Getting there":"Keep practising"}</h4><p>${pc}% on ${esc(d.title||"this quiz")}</p><button class="btn pri" data-r>Try again</button></div>`;
+        el.querySelector("[data-r]").onclick = () => { i = 0; score = 0; draw(); }; return;
+      }
+      const q = Q[i], mcq = Array.isArray(q.o) && q.o.length;
+      el.innerHTML = `<div class="qh"><span>${esc(d.title||"Quiz")}</span><span>${i+1} / ${Q.length}</span></div><div class="qbar"><i style="width:${i/Q.length*100}%"></i></div>
+<div class="qq">${esc(q.q)}${q.m?`<em>${q.m} mark${q.m>1?"s":""}</em>`:""}</div>
+${mcq ? `<div class="qo">${q.o.map((o,k)=>`<button data-k="${k}"><b>${"ABCDEF"[k]||k+1}</b><span>${esc(o)}</span></button>`).join("")}</div>`
+: `<textarea class="qa" placeholder="Write your answer, then check it…"></textarea><button class="btn" data-show>Show model answer</button>`}<div class="qex" hidden></div>`;
+      const ex = el.querySelector(".qex");
+      const fin = (html,ok) => { ex.hidden = false; ex.className = "qex "+(ok===true?"good":ok===false?"bad":""); ex.innerHTML = html+`<button class="btn pri" data-n>${i+1<Q.length?"Next question":"See results"}</button>`; ex.querySelector("[data-n]").onclick = next; math(); };
+      if(mcq) el.querySelectorAll(".qo button").forEach(b=>b.onclick = () => {
+        const k = +b.dataset.k, a = +q.a, ok = k===a; if(ok) score++;
+        el.querySelectorAll(".qo button").forEach((x,j)=>{ x.disabled = true; if(j===a) x.classList.add("right"); else if(j===k) x.classList.add("wrong"); });
+        fin(`<strong>${ok?"Correct":"Not quite"}</strong>${q.e?`<p>${esc(q.e)}</p>`:""}`,ok);
+      });
+      else el.querySelector("[data-show]").onclick = e => {
+        e.target.hidden = true; ex.hidden = false;
+        ex.innerHTML = `<strong>Model answer</strong><p>${esc(String(q.a))}</p>${q.e?`<p>${esc(q.e)}</p>`:""}<div class="qsb"><span>How did you go?</span><button class="btn" data-y>Got it</button><button class="btn" data-m>Not yet</button></div>`;
+        ex.querySelector("[data-y]").onclick = () => { score++; next(); }; ex.querySelector("[data-m]").onclick = next; math();
+      };
+      math();
+    }
+    draw();
+  });
+}
 async function enrich(root){
+  mountQuiz(root);
   if(/\$\$|\\\(|\\\[/.test(root.textContent)){ try{ await loadKatex(); renderMathInElement(root,{delimiters:[{left:"$$",right:"$$",display:true},{left:"\\[",right:"\\]",display:true},{left:"\\(",right:"\\)",display:false}],throwOnError:false}); }catch{} }
   const mm = root.querySelectorAll("pre.mermaid:not([data-processed])");
   if(mm.length){ try{ const {default:mer} = await import(CDN+"mermaid@11.4.0/dist/mermaid.esm.min.mjs"); mer.initialize({startOnLoad:false,theme:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"default"}); await mer.run({nodes:mm}); }catch{} }
@@ -797,6 +864,16 @@ $("#modal").onclick = e => { if(e.target.id==="modal") closeSet(); };
 document.addEventListener("keydown", e => { if(e.key==="Escape") closeSet(); });
 document.querySelectorAll("#theme [data-t]").forEach(b=>b.onclick=()=>{ prefs.theme = b.dataset.t; savePrefs(); applyTheme(); });
 if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(()=>{});
+const SUBJ = ["English","EAL","Literature","English Language","Mathematical Methods","Specialist Mathematics","General Mathematics","Biology","Chemistry","Physics","Psychology","Health and Human Development","Physical Education","Business Management","Economics","Accounting","Legal Studies","History","Geography","Computing","Psychology","Media","Visual Communication Design","Art Creative Practice","Music","Languages"];
+const onbOpen = () => {
+  let yr = String(prefs.year??""), sel = new Set(prefs.subjects||[]);
+  const sync = () => { document.querySelectorAll("#oyr button").forEach(b=>b.classList.toggle("on",b.dataset.y===yr)); document.querySelectorAll("#osub .sbj").forEach(c=>c.classList.toggle("on",sel.has(c.textContent))); };
+  $("#osub").innerHTML = [...new Set(SUBJ)].map(x=>`<button type="button" class="sbj">${x}</button>`).join("");
+  $("#osub").onclick = e => { const c = e.target.closest(".sbj"); if(!c) return; sel.has(c.textContent) ? sel.delete(c.textContent) : sel.add(c.textContent); sync(); };
+  $("#oyr").onclick = e => { const b = e.target.closest("button"); if(b){ yr = b.dataset.y; sync(); } };
+  const done = save => { if(save){ prefs.year = yr==="0"?"":yr; prefs.subjects = [...sel]; if(yr==="0" && prefs.memory===DEFAULT_MEM){ prefs.memory = ""; $("#mem").value = ""; } else if(yr && yr!=="0" && !prefs.memory){ prefs.memory = DEFAULT_MEM; $("#mem").value = DEFAULT_MEM; } } prefs.onboarded = 1; savePrefs(); $("#onb").hidden = true; };
+  $("#osave").onclick = () => done(true); $("#oskip").onclick = () => done(false); sync(); $("#onb").hidden = false;
+};
 hint();
 $("#whoSub").textContent = "Saved in this browser";
 $("#att").onclick = () => $("#file").click();
@@ -894,9 +971,10 @@ $("#artsX").onclick = () => $("#artsM").hidden = true;
 $("#artsM").onclick = e => { if(e.target.id==="artsM") e.currentTarget.hidden = true; };
 
 // ---------- start ----------
+document.addEventListener("click", e => { if(e.target.closest("#subj")){ onbOpen(); } });
 async function start(){
   try{ chats = await load(); }catch(e){ console.error(e); chats = []; }
-  loadModels(); newChat(); markReady();
+  loadModels(); newChat(); markReady(); if(!prefs.onboarded) setTimeout(()=>{ if(!prefs.onboarded) onbOpen(); },1500);
 }
 const setGuestUI = () => {
   $("#who").textContent = "Guest"; $("#whoSub").textContent = "Saved on this device"; $("#avatar").textContent = "G";
